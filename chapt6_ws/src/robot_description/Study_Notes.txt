@@ -1,0 +1,80 @@
+2.2 使用功能包组织python节点
+（1）ros2 pkg;ros2 pkg create --build-type  ament_python --license Apache-2.0 demo_python_pkg
+  生成：demo_python_pkg
+          demo_python_pkg
+          resource
+          test
+          LICENSE
+          setup.cfg
+(2)colcon build（在当前目录生成build，install，log）
+
+2.4 Workspace
+(1)mkdir -p chapt2_ws/src #创建工作空间
+(2)mv demo_python_pkg/ chapt2_ws/ #移动包到工作空间
+(3)cd chapt2_ws/ colcon build #进入工作空间目录，创建
+
+2.5 ROS2 面向对象编程
+问题1：   1.看包是否注册成功
+            ros2 pkg list | grep 你的包名
+         2. 确认编译时没有任何 WARNING
+            colcon build   # 仔细看输出
+         3. 检查 ament 索引文件是否存在
+            ls install/你的包名/share/ament_index/resource_index/packages/
+         4. 全部失败 → 清空重编 
+            rm -rf build install log && colcon build && source install/setup.bash
+
+总结：   1.A 继承 B，B 继承 C，那么 A 会获得 C 的公开属性和方法，这称为多级继承（继承链）。
+        2.Python 沿着继承链从下往上查找属性和方法：
+          A → B → C → object
+      * 3.A 不直接调用 C。A 只负责满足 B 的参数需求，B 再把合适的参数传给 C。每一层只需要认识自己的直接父类，参数在每一层被“翻译”和“补齐”
+
+
+3.1 话题通信介绍：
+
+   发布节点  --->   订阅节点      
+
+
+    指令：ros2 topic pub /turtle1/cmd_vel  geometry_msgs/msg/Twist "{linear:{x: -0.5, y: 0.0} , angular: {z: -1.0}  }"
+         
+         （1）：ros2 topic pub --help
+         （1）：ros2 topic pub --help
+
+3.2 话题运用：
+   ros2 pkg create demo_python_topic --build-type ament_python --dependencies rclpy example_interface --license Apache-2.0
+   
+   
+4.1 服务通信：
+    ros2 param dump /turtlesim > turtlesim_param.yaml
+    cat turtlesim_param.yaml 
+    ros2 run turtlesim turtlesim_node --ros-args --params-file turrlesim_param.yaml
+    
+
+    
+5. 坐标变换
+
+ros2 pkg create --build-type ament_python --dependencies  rclpy geometry-msgs tr_ros tr_transformations --license Apache-2.0 demo_python_tf
+
+
+6. gazebo_ros2_control 插件
+
+gazebo_ros2_control 的作用不是改变 Gazebo 中机器人的外观，而是把 Gazebo 的关节与 ROS 2
+控制器连接起来。数据链路通常为：
+
+    /cmd_vel -> diff_drive_controller -> ros2_control -> gazebo_ros2_control -> Gazebo 关节
+
+安装并正确配置后，可以使用 ros2_control 的控制器（例如 diff_drive_controller）驱动左右轮，
+并发布关节状态。仅仅在 xacro 中写入插件，不会让模型外观发生明显变化；如果没有安装
+gazebo_ros2_control 或没有加载控制器，在 Gazebo 画面中通常看不出区别。
+
+检查控制器：
+
+    ros2 control list_controllers
+
+检查插件是否安装：
+
+    ros2 pkg prefix gazebo_ros2_control
+    find /opt/ros/humble -name 'libgazebo_ros2_control.so'
+
+如果要通过 /cmd_vel 驱动机器人，还需要配置并启动 diff_drive_controller；插件本身只是
+Gazebo 与 ros2_control 之间的桥梁，不负责自动提供完整的运动控制逻辑。
+   

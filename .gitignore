@@ -1,0 +1,8 @@
+# ROS 2 / colcon generated files
+build/
+install/
+log/
+
+# Python caches
+__pycache__/
+*.py[cod]
